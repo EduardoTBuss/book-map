@@ -1,6 +1,6 @@
 <h1 align="center">📚 Book Map</h1>
 <p align="center">
-  <em>Descubra o mundo através dos livros.</em>
+  <em>Cada obra, todas as suas línguas — pintadas no mapa do mundo.</em>
 </p>
 
 <p align="center">
@@ -12,7 +12,7 @@
 
 ---
 
-**Book Map** conecta literatura e geografia: pesquise um livro, selecione uma obra e veja no mapa interativo quais países do mundo falam o idioma daquela obra.
+**Book Map** conecta literatura e geografia: pesquise um livro, selecione uma obra e veja no mapa **todos os países pintados, idioma por idioma**, onde as línguas em que a obra está disponível são faladas.
 
 ![preview](src/assets/hero.png)
 
@@ -22,7 +22,10 @@
 
 1. **Pesquise** um livro pelo título
 2. **Selecione** uma obra da lista de resultados
-3. **Explore** no mapa os países que falam o idioma do livro
+3. **Explore** o mapa: cada idioma em que a obra foi publicada recebe uma cor, e todos os países que falam aquela língua são pintados com ela
+4. **Filtre** pela legenda: clique em um idioma para ocultá-lo ou exibi-lo no mapa
+
+> Exemplo: *Le Petit Prince* aparece com ~38 idiomas — do francês ao coreano — e mais de 180 países pintados, cada um com a cor do seu idioma. Passe o mouse sobre um país para ver bandeira, capital, região, população e as línguas da obra faladas ali.
 
 ---
 
@@ -45,9 +48,10 @@ Acesse `http://localhost:5173`. Nenhuma chave de API é necessária.
 |---|---|
 | UI | React 19 + Vite 8 |
 | Mapa | React-Leaflet + CARTO Dark Matter tiles |
+| Fronteiras | GeoJSON mundial (ISO 3166-1 alpha-3) servido localmente |
 | Livros | [Open Library API](https://openlibrary.org/developers/api) |
 | Países | [REST Countries API](https://restcountries.com) |
-| Estilos | CSS vanilla com design tokens e dark mode |
+| Estilos | CSS vanilla com design tokens — tema "atlas de cartógrafo" (Fraunces + Instrument Sans + IBM Plex Mono) |
 
 ---
 
@@ -56,10 +60,12 @@ Acesse `http://localhost:5173`. Nenhuma chave de API é necessária.
 ```
 src/
 ├── components/       # SearchBar, BookList, BookDetail, MapView, ErrorMessage
-├── services/         # openLibraryApi.js · restCountriesApi.js
-├── utils/            # languageMap.js (ISO 639-2/B → nome por extenso)
+├── services/         # openLibraryApi.js · restCountriesApi.js (com cache por idioma)
+├── utils/            # languageMap.js (ISO 639-2/B → ISO 639-3 + nome PT + cores)
 ├── App.jsx           # Componente raiz e orquestrador de estado
 └── index.css         # Design tokens globais
+public/
+└── data/             # world-countries.geo.json (polígonos dos países)
 ```
 
 ---
@@ -69,13 +75,14 @@ src/
 ```
 busca por título
       ↓
-  Open Library API  →  lista de livros com idioma (ISO 639-2)
+  Open Library API   →  obras com TODOS os idiomas das edições (ISO 639-2/B)
       ↓
-  languageMap.js    →  converte código para nome ("eng" → "english")
+  languageMap.js     →  converte cada código para ISO 639-3 ("fre" → "fra")
+      ↓                 e atribui uma cor por idioma
+REST Countries API   →  países de cada idioma, em paralelo (Promise.allSettled)
       ↓
-REST Countries API  →  países que falam o idioma
-      ↓
-   Leaflet Map      →  markers com bandeira, capital, região e população
+  GeoJSON + Leaflet  →  países PINTADOS por idioma, legenda interativa,
+                        tooltip com bandeira, capital, região e população
 ```
 
 ---
@@ -83,6 +90,8 @@ REST Countries API  →  países que falam o idioma
 ## 🤖 Sobre o projeto
 
 Desenvolvido para a disciplina de **Inteligência Artificial Aplicada**, onde exploramos o uso de IA generativa como ferramenta de desenvolvimento — uma prática chamada de *vibe coding*. O objetivo é aprender a colaborar com IA para construir produtos funcionais de forma rápida e iterativa, desde o design até a entrega.
+
+O processo de desenvolvimento com IA está documentado em [AI_PROCESS.md](AI_PROCESS.md) e [PROCESS.md](PROCESS.md).
 
 ---
 

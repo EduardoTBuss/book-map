@@ -9,9 +9,9 @@ function ErrorMessage({ type = 'error', message }) {
   if (!message) return null;
 
   const icons = {
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️',
+    error: '✕',
+    warning: '△',
+    info: '✦',
   };
 
   return (

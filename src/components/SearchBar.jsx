@@ -18,16 +18,18 @@ function SearchBar({ onSearch, isLoading }) {
 
   return (
     <div className="search-bar-wrapper">
-      <h1>📚 BookMap</h1>
-      <p className="subtitle">Pesquise livros e descubra onde se fala o idioma da obra</p>
+      <span className="search-kicker">✦ Atlas Literário ✦</span>
+      <h1>Book Map</h1>
+      <p className="subtitle">
+        Cada obra, todas as suas línguas — pintadas no mapa do mundo
+      </p>
       <form className="search-form" onSubmit={handleSubmit}>
         <div className="search-input-wrapper">
-          <span className="search-icon">🔍</span>
           <input
             id="search-input"
             type="text"
             className={`search-input ${hasError ? 'error' : ''}`}
-            placeholder="Digite o título de um livro..."
+            placeholder="Título de um livro…"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -43,14 +45,7 @@ function SearchBar({ onSearch, isLoading }) {
           className="search-button"
           disabled={isLoading}
         >
-          {isLoading ? (
-            <>
-              <span className="spinner" />
-              Buscando...
-            </>
-          ) : (
-            'Buscar'
-          )}
+          {isLoading ? <span className="spinner" /> : 'Buscar'}
         </button>
       </form>
     </div>

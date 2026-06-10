@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import SearchBar from './components/SearchBar';
 import BookList from './components/BookList';
 import BookDetail from './components/BookDetail';
@@ -6,7 +6,7 @@ import MapView from './components/MapView';
 import ErrorMessage from './components/ErrorMessage';
 import { searchBooks } from './services/openLibraryApi';
 import { getCountriesByLanguage } from './services/restCountriesApi';
-import { getLanguageName, getLanguageDisplay } from './utils/languageMap';
+import { getLanguageInfo, getLanguageQuery, getLanguageColor } from './utils/languageMap';
 import './App.css';
 
 function App() {
@@ -17,11 +17,14 @@ function App() {
   const [searchError, setSearchError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Country state
-  const [countries, setCountries] = useState([]);
+  // Language/country state — uma camada por idioma da obra
+  const [languageLayers, setLanguageLayers] = useState([]);
+  const [unknownLanguages, setUnknownLanguages] = useState([]);
   const [countriesLoading, setCountriesLoading] = useState(false);
   const [countriesError, setCountriesError] = useState(null);
-  const [currentLanguageDisplay, setCurrentLanguageDisplay] = useState('');
+
+  // Guarda contra respostas fora de ordem ao trocar de livro durante o fetch
+  const selectionIdRef = useRef(0);
 
   /**
    * Busca livros por título na Open Library.
@@ -31,9 +34,9 @@ function App() {
     setSearchError(null);
     setBooks([]);
     setSelectedBook(null);
-    setCountries([]);
+    setLanguageLayers([]);
+    setUnknownLanguages([]);
     setCountriesError(null);
-    setCurrentLanguageDisplay('');
     setHasSearched(true);
 
     try {
@@ -52,45 +55,86 @@ function App() {
   }, []);
 
   /**
-   * Seleciona um livro e busca os países do idioma.
+   * Seleciona um livro e busca os países de TODOS os idiomas em que a obra
+   * está disponível — cada idioma vira uma camada colorida no mapa.
    */
   const handleSelectBook = useCallback(async (book) => {
+    const selectionId = ++selectionIdRef.current;
+
     setSelectedBook(book);
-    setCountries([]);
+    setLanguageLayers([]);
+    setUnknownLanguages([]);
     setCountriesError(null);
-    setCurrentLanguageDisplay('');
 
-    const langCode = book.language?.[0];
+    const codes = [...new Set((book.language || []).map((c) => c.toLowerCase()))];
 
-    if (!langCode) {
+    if (codes.length === 0) {
       // Livro sem idioma informado — não busca países
       return;
     }
 
-    const langName = getLanguageName(langCode);
-    const langDisplay = getLanguageDisplay(langCode);
-    setCurrentLanguageDisplay(langDisplay);
+    const known = codes.filter((c) => getLanguageInfo(c));
+    const unknown = codes.filter((c) => !getLanguageInfo(c));
+    setUnknownLanguages(unknown);
 
-    if (!langName) {
-      // Idioma não reconhecido no nosso mapeamento
-      setCountriesError(`Não foi possível identificar o idioma "${langCode}" para buscar países.`);
+    if (known.length === 0) {
+      setCountriesError(
+        `Nenhum dos idiomas desta obra (${codes.join(', ')}) é reconhecido para busca de países.`
+      );
       return;
     }
 
     setCountriesLoading(true);
 
     try {
-      const result = await getCountriesByLanguage(langName);
-      setCountries(result);
+      const results = await Promise.allSettled(
+        known.map((code) => getCountriesByLanguage(getLanguageQuery(code)))
+      );
 
-      if (result.length === 0) {
-        setCountriesError(`Nenhum país encontrado para o idioma "${langDisplay}".`);
+      // Outro livro foi selecionado enquanto esta busca rodava — descarta
+      if (selectionId !== selectionIdRef.current) return;
+
+      const layers = [];
+      let failed = 0;
+
+      results.forEach((result, i) => {
+        const code = known[i];
+        const info = getLanguageInfo(code);
+
+        if (result.status === 'fulfilled') {
+          layers.push({
+            code,
+            display: info.display,
+            color: getLanguageColor(layers.length),
+            countries: result.value,
+          });
+        } else {
+          console.error(`Erro ao buscar países de "${info.display}":`, result.reason);
+          failed++;
+        }
+      });
+
+      setLanguageLayers(layers);
+
+      const totalCountries = new Set(
+        layers.flatMap((l) => l.countries.map((c) => c.cca3))
+      ).size;
+
+      if (layers.length === 0) {
+        setCountriesError('Erro ao consultar a REST Countries API. Tente novamente.');
+      } else if (totalCountries === 0) {
+        setCountriesError('Nenhum país encontrado para os idiomas desta obra.');
+      } else if (failed > 0) {
+        setCountriesError(`Não foi possível carregar ${failed} idioma(s) — exibindo os demais.`);
       }
     } catch (err) {
+      if (selectionId !== selectionIdRef.current) return;
       console.error('Erro ao buscar países:', err);
       setCountriesError('Erro ao consultar a REST Countries API. Tente novamente.');
     } finally {
-      setCountriesLoading(false);
+      if (selectionId === selectionIdRef.current) {
+        setCountriesLoading(false);
+      }
     }
   }, []);
 
@@ -118,7 +162,8 @@ function App() {
           {selectedBook && (
             <BookDetail
               book={selectedBook}
-              countriesCount={countries.length}
+              languageLayers={languageLayers}
+              unknownLanguages={unknownLanguages}
               loadingCountries={countriesLoading}
             />
           )}
@@ -135,22 +180,28 @@ function App() {
           {/* Empty state before first search */}
           {!hasSearched && (
             <div className="empty-state">
-              <span className="empty-state-icon">🔍</span>
+              <span className="empty-state-glyph">✦</span>
               <h3 className="empty-state-title">Descubra o mundo através dos livros</h3>
               <p className="empty-state-text">
-                Pesquise um livro pelo título e veja no mapa quais países falam o idioma da obra selecionada.
+                Pesquise um livro pelo título e veja no mapa, pintados por idioma,
+                todos os países que falam as línguas em que a obra está disponível.
               </p>
+              <span className="empty-state-coords">40°45′N&nbsp;·&nbsp;73°59′O</span>
             </div>
           )}
         </div>
+
+        <footer className="panel-footer">
+          <span>Open Library · REST Countries</span>
+          <span className="panel-footer-mark">Atlas Literário</span>
+        </footer>
       </aside>
 
       {/* Right Panel: Map */}
       <main className="panel-right">
         <MapView
-          countries={countries}
+          languageLayers={languageLayers}
           loadingCountries={countriesLoading}
-          languageDisplay={currentLanguageDisplay}
         />
       </main>
     </div>

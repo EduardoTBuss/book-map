@@ -1,21 +1,27 @@
 const BASE_URL = 'https://restcountries.com/v3.1';
 
-/**
- * Busca países por nome do idioma via REST Countries API.
- * @param {string} languageName - Nome do idioma em inglês (ex: "portuguese")
- * @returns {Promise<Array>} Array de países
- */
-export async function getCountriesByLanguage(languageName) {
-  if (!languageName) return [];
+// Cache em memória por idioma — uma obra costuma repetir idiomas entre
+// seleções e cada idioma dispara uma requisição própria.
+const cache = new Map();
 
-  const fields = 'name,flags,latlng,region,subregion,population,capital';
+/**
+ * Busca países por idioma via REST Countries API.
+ * @param {string} languageQuery - Código ISO 639-3 do idioma (ex: "por", "fra")
+ * @returns {Promise<Array>} Array de países (com cca3 para casar com o GeoJSON)
+ */
+export async function getCountriesByLanguage(languageQuery) {
+  if (!languageQuery) return [];
+  if (cache.has(languageQuery)) return cache.get(languageQuery);
+
+  const fields = 'name,cca3,flags,latlng,region,subregion,population,capital';
 
   const response = await fetch(
-    `${BASE_URL}/lang/${encodeURIComponent(languageName)}?fields=${fields}`
+    `${BASE_URL}/lang/${encodeURIComponent(languageQuery)}?fields=${fields}`
   );
 
   // REST Countries retorna 404 quando não encontra nenhum país
   if (response.status === 404) {
+    cache.set(languageQuery, []);
     return [];
   }
 
@@ -26,5 +32,7 @@ export async function getCountriesByLanguage(languageName) {
   const data = await response.json();
 
   // Ordena por população (maior primeiro) para destaque visual
-  return data.sort((a, b) => (b.population || 0) - (a.population || 0));
+  const sorted = data.sort((a, b) => (b.population || 0) - (a.population || 0));
+  cache.set(languageQuery, sorted);
+  return sorted;
 }

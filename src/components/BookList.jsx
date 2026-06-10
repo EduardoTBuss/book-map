@@ -1,5 +1,4 @@
 import { getCoverUrl } from '../services/openLibraryApi';
-import { getLanguageDisplay } from '../utils/languageMap';
 import './BookList.css';
 
 function BookList({ books, selectedBook, onSelectBook }) {
@@ -9,13 +8,17 @@ function BookList({ books, selectedBook, onSelectBook }) {
     <div className="book-list">
       <div className="book-list-header">
         <h2>Resultados</h2>
-        <span className="result-count">{books.length} livro{books.length !== 1 ? 's' : ''}</span>
+        <span className="result-count">
+          {books.length} obra{books.length !== 1 ? 's' : ''}
+        </span>
       </div>
-      <div className="book-grid">
-        {books.map((book) => {
+      <div className="book-rows">
+        {books.map((book, index) => {
           const isSelected = selectedBook?.key === book.key;
           const coverUrl = getCoverUrl(book.cover_i, 'S');
-          const language = book.language?.[0];
+          const languageCount = new Set(
+            (book.language || []).map((c) => c.toLowerCase())
+          ).size;
 
           return (
             <div
@@ -32,6 +35,7 @@ function BookList({ books, selectedBook, onSelectBook }) {
                 }
               }}
             >
+              <span className="book-index">{String(index + 1).padStart(2, '0')}</span>
               <div className="book-cover">
                 {coverUrl ? (
                   <img
@@ -40,11 +44,11 @@ function BookList({ books, selectedBook, onSelectBook }) {
                     loading="lazy"
                     onError={(e) => {
                       e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = '<span class="book-cover-placeholder">📖</span>';
+                      e.target.parentElement.innerHTML = '<span class="book-cover-placeholder">✦</span>';
                     }}
                   />
                 ) : (
-                  <span className="book-cover-placeholder">📖</span>
+                  <span className="book-cover-placeholder">✦</span>
                 )}
               </div>
               <div className="book-info">
@@ -58,9 +62,9 @@ function BookList({ books, selectedBook, onSelectBook }) {
                   {book.first_publish_year && (
                     <span className="book-badge">{book.first_publish_year}</span>
                   )}
-                  {language && (
+                  {languageCount > 0 && (
                     <span className="book-badge language">
-                      {getLanguageDisplay(language)}
+                      {languageCount} idioma{languageCount !== 1 ? 's' : ''}
                     </span>
                   )}
                 </div>

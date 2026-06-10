@@ -1,68 +1,100 @@
 /**
- * Mapeamento de códigos ISO 639-2/B (usados pela Open Library)
- * para nomes de idioma em inglês (usados pela REST Countries API)
- * e nomes de exibição em português.
+ * Mapeamento de códigos ISO 639-2/B (usados pela Open Library) para:
+ * - `query`: código ISO 639-3 aceito pelo endpoint /lang/ da REST Countries
+ *   (mais robusto que o nome em inglês — ex: "persian" retorna 404, "fas" não);
+ * - `display`: nome de exibição em português.
+ *
+ * Na maioria dos idiomas os dois códigos coincidem; os divergentes
+ * (fre→fra, ger→deu, chi→zho…) estão convertidos abaixo.
  */
 const languageMap = {
-  eng: { name: 'english', display: 'Inglês' },
-  spa: { name: 'spanish', display: 'Espanhol' },
-  por: { name: 'portuguese', display: 'Português' },
-  fre: { name: 'french', display: 'Francês' },
-  ger: { name: 'german', display: 'Alemão' },
-  ita: { name: 'italian', display: 'Italiano' },
-  rus: { name: 'russian', display: 'Russo' },
-  jpn: { name: 'japanese', display: 'Japonês' },
-  chi: { name: 'chinese', display: 'Chinês' },
-  ara: { name: 'arabic', display: 'Árabe' },
-  hin: { name: 'hindi', display: 'Hindi' },
-  kor: { name: 'korean', display: 'Coreano' },
-  dut: { name: 'dutch', display: 'Holandês' },
-  pol: { name: 'polish', display: 'Polonês' },
-  tur: { name: 'turkish', display: 'Turco' },
-  swe: { name: 'swedish', display: 'Sueco' },
-  nor: { name: 'norwegian', display: 'Norueguês' },
-  dan: { name: 'danish', display: 'Dinamarquês' },
-  fin: { name: 'finnish', display: 'Finlandês' },
-  heb: { name: 'hebrew', display: 'Hebraico' },
-  tha: { name: 'thai', display: 'Tailandês' },
-  vie: { name: 'vietnamese', display: 'Vietnamita' },
-  ukr: { name: 'ukrainian', display: 'Ucraniano' },
-  rum: { name: 'romanian', display: 'Romeno' },
-  cze: { name: 'czech', display: 'Tcheco' },
-  gre: { name: 'greek', display: 'Grego' },
-  hun: { name: 'hungarian', display: 'Húngaro' },
-  cat: { name: 'catalan', display: 'Catalão' },
-  ind: { name: 'indonesian', display: 'Indonésio' },
-  per: { name: 'persian', display: 'Persa' },
-  ben: { name: 'bengali', display: 'Bengali' },
-  tam: { name: 'tamil', display: 'Tâmil' },
-  urd: { name: 'urdu', display: 'Urdu' },
-  may: { name: 'malay', display: 'Malaio' },
-  bul: { name: 'bulgarian', display: 'Búlgaro' },
-  hrv: { name: 'croatian', display: 'Croata' },
-  srp: { name: 'serbian', display: 'Sérvio' },
-  slv: { name: 'slovene', display: 'Esloveno' },
-  slo: { name: 'slovak', display: 'Eslovaco' },
-  lit: { name: 'lithuanian', display: 'Lituano' },
-  lav: { name: 'latvian', display: 'Letão' },
-  est: { name: 'estonian', display: 'Estoniano' },
-  wel: { name: 'welsh', display: 'Galês' },
-  gle: { name: 'irish', display: 'Irlandês' },
-  afr: { name: 'afrikaans', display: 'Africâner' },
-  swa: { name: 'swahili', display: 'Suaíli' },
-  geo: { name: 'georgian', display: 'Georgiano' },
-  arm: { name: 'armenian', display: 'Armênio' },
-  alb: { name: 'albanian', display: 'Albanês' },
-  mac: { name: 'macedonian', display: 'Macedônio' },
-  ice: { name: 'icelandic', display: 'Islandês' },
-  mlt: { name: 'maltese', display: 'Maltês' },
-  lat: { name: 'latin', display: 'Latim' },
+  eng: { query: 'eng', display: 'Inglês' },
+  spa: { query: 'spa', display: 'Espanhol' },
+  por: { query: 'por', display: 'Português' },
+  fre: { query: 'fra', display: 'Francês' },
+  ger: { query: 'deu', display: 'Alemão' },
+  ita: { query: 'ita', display: 'Italiano' },
+  rus: { query: 'rus', display: 'Russo' },
+  jpn: { query: 'jpn', display: 'Japonês' },
+  chi: { query: 'zho', display: 'Chinês' },
+  ara: { query: 'ara', display: 'Árabe' },
+  hin: { query: 'hin', display: 'Hindi' },
+  kor: { query: 'kor', display: 'Coreano' },
+  dut: { query: 'nld', display: 'Holandês' },
+  pol: { query: 'pol', display: 'Polonês' },
+  tur: { query: 'tur', display: 'Turco' },
+  swe: { query: 'swe', display: 'Sueco' },
+  nor: { query: 'nor', display: 'Norueguês' },
+  dan: { query: 'dan', display: 'Dinamarquês' },
+  fin: { query: 'fin', display: 'Finlandês' },
+  heb: { query: 'heb', display: 'Hebraico' },
+  tha: { query: 'tha', display: 'Tailandês' },
+  vie: { query: 'vie', display: 'Vietnamita' },
+  ukr: { query: 'ukr', display: 'Ucraniano' },
+  rum: { query: 'ron', display: 'Romeno' },
+  cze: { query: 'ces', display: 'Tcheco' },
+  gre: { query: 'ell', display: 'Grego' },
+  hun: { query: 'hun', display: 'Húngaro' },
+  cat: { query: 'cat', display: 'Catalão' },
+  ind: { query: 'ind', display: 'Indonésio' },
+  per: { query: 'fas', display: 'Persa' },
+  ben: { query: 'ben', display: 'Bengali' },
+  tam: { query: 'tam', display: 'Tâmil' },
+  urd: { query: 'urd', display: 'Urdu' },
+  may: { query: 'msa', display: 'Malaio' },
+  bul: { query: 'bul', display: 'Búlgaro' },
+  hrv: { query: 'hrv', display: 'Croata' },
+  srp: { query: 'srp', display: 'Sérvio' },
+  slv: { query: 'slv', display: 'Esloveno' },
+  slo: { query: 'slk', display: 'Eslovaco' },
+  lit: { query: 'lit', display: 'Lituano' },
+  lav: { query: 'lav', display: 'Letão' },
+  est: { query: 'est', display: 'Estoniano' },
+  wel: { query: 'cym', display: 'Galês' },
+  gle: { query: 'gle', display: 'Irlandês' },
+  afr: { query: 'afr', display: 'Africâner' },
+  swa: { query: 'swa', display: 'Suaíli' },
+  geo: { query: 'kat', display: 'Georgiano' },
+  arm: { query: 'hye', display: 'Armênio' },
+  alb: { query: 'sqi', display: 'Albanês' },
+  mac: { query: 'mkd', display: 'Macedônio' },
+  ice: { query: 'isl', display: 'Islandês' },
+  mlt: { query: 'mlt', display: 'Maltês' },
+  lat: { query: 'lat', display: 'Latim' },
 };
+
+/**
+ * Paleta de cores distintas (legíveis sobre o mapa escuro) atribuídas
+ * aos idiomas de uma obra, na ordem em que aparecem.
+ */
+export const LANGUAGE_COLORS = [
+  '#e3b65b', // dourado
+  '#e07856', // coral
+  '#62b6cb', // azul-petróleo
+  '#a78bda', // violeta
+  '#8fbc6f', // verde-oliva
+  '#e0699a', // rosa
+  '#5d9de0', // azul
+  '#e09a3e', // âmbar
+  '#5fc9b3', // turquesa
+  '#c47fc0', // orquídea
+  '#b5c061', // lima
+  '#d9655b', // telha
+];
+
+/**
+ * Retorna uma cor estável para o idioma na posição `index`.
+ * @param {number} index
+ * @returns {string} Cor em hexadecimal
+ */
+export function getLanguageColor(index) {
+  return LANGUAGE_COLORS[index % LANGUAGE_COLORS.length];
+}
 
 /**
  * Retorna as informações do idioma a partir do código ISO 639-2/B.
  * @param {string} code - Código de 3 letras (ex: "eng")
- * @returns {{ name: string, display: string } | null}
+ * @returns {{ query: string, display: string } | null}
  */
 export function getLanguageInfo(code) {
   if (!code) return null;
@@ -80,13 +112,13 @@ export function getLanguageDisplay(code) {
 }
 
 /**
- * Retorna o nome em inglês do idioma (para uso na REST Countries API).
+ * Retorna o termo de consulta para a REST Countries API (código ISO 639-3).
  * @param {string} code
  * @returns {string | null}
  */
-export function getLanguageName(code) {
+export function getLanguageQuery(code) {
   const info = getLanguageInfo(code);
-  return info ? info.name : null;
+  return info ? info.query : null;
 }
 
 export default languageMap;

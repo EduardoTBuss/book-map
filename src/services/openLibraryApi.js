@@ -11,8 +11,11 @@ export async function searchBooks(title) {
     return [];
   }
 
+  // Busca geral (q=) em vez de title=: a relevância da Open Library prioriza
+  // as obras canônicas, que concentram as edições traduzidas — essencial para
+  // listar todos os idiomas em que o livro está disponível.
   const params = new URLSearchParams({
-    title: title.trim(),
+    q: title.trim(),
     limit: '12',
     fields: 'key,title,author_name,first_publish_year,language,cover_i,edition_count',
   });
